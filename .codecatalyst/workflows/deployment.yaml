@@ -28,9 +28,6 @@ Actions:
         Image: CodeCatalystLinux_x86_64:2024_03
     Environment:
       Name: prod_environment
-      Connections:
-        - Name: "250252210437"
-          Role: CodeCatalystWorkflowDevelopmentRole-IDP_klgrady
   build:
     DependsOn:
       - init
@@ -53,7 +50,7 @@ Actions:
         - Run: export REGION=$region
         - Run: export BUCKET_PREFIX=$bucketPrefix
         - Run: export BUCKET_NAME=$BUCKET_PREFIX-$REGION
-        - Run: export GUIDANCE_NAME=guidance-for-intelligent-document-processing-on-aws
+        - Run: export GUIDANCE_NAME=guidance-for-meter-data-analytics-on-aws
         - Run: export VERSION=$guidanceVersion
         - Run: chmod u+x ./.codecatalyst/*.sh
         - Run: echo ./.codecatalyst/create-bucket.sh $BUCKET_NAME $REGION
@@ -65,21 +62,16 @@ Actions:
         Image: CodeCatalystLinux_x86_64:2024_03
     Environment:
       Name: prod_environment
-      Connections:
-        - Name: "250252210437"
-          Role: CodeCatalystWorkflowDevelopmentRole-IDP_klgrady
   deploy:
     DependsOn:
       - build
     Identifier: aws/cfn-deploy@v1
     Configuration:
-      parameter-overrides: DomainName=MySagemakerDomain,UserProfileName=SageMakerUser
+      parameter-overrides: file:///sources/WorkflowSource/.codecatalyst/parameter.json
+      #parameter-overrides: DomainName=MySagemakerDomain,UserProfileName=SageMakerUser
       capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
-      template: https://guidance-idp-10-klgrady-us-west-2.s3.us-west-2.amazonaws.com/guidance-for-intelligent-document-processing-on-aws/v2.0.0/idp-deploy.yaml
-      region: us-west-2
-      name: guidance-for-intelligent-document-processing-on-aws
+      template: https://{{bucketPrefix}}-{{region}}.s3.{{region}}.amazonaws.com/guidance-for-meter-data-analytics-on-aws/{{guidanceVersion}}/idp-deploy.yaml
+      region: {{ region }}
+      name: guidance-for-meter-data-analytics-on-aws
     Environment:
       Name: prod_environment
-      Connections:
-        - Name: "250252210437"
-          Role: CodeCatalystWorkflowDevelopmentRole-IDP_klgrady

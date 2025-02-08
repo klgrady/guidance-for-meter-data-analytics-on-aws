@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #set -e
-#export SOLUTIONID="SO9052"
+#export SOLUTIONID="SO9213"
 
 # Name of the environment variable file
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
