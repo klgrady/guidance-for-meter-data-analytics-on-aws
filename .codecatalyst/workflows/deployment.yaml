@@ -89,7 +89,7 @@ Actions:
         - Run: chmod u+x ./.codecatalyst/*.sh
         - Run: echo ./.codecatalyst/create-bucket.sh $BUCKET_NAME $REGION
         - Run: ./.codecatalyst/create-bucket.sh $BUCKET_NAME $REGION
-        - Run: aws s3 cp ./dist/idp-deploy.yaml
+        - Run: aws s3 cp ./templates/work-load.template.yaml
             s3://$BUCKET_NAME/$GUIDANCE_NAME/$VERSION/idp-deploy.yaml
       Container:
         Registry: CODECATALYST
