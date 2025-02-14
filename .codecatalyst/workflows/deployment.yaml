@@ -23,14 +23,48 @@ Actions:
         - Run: ./.codecatalyst/init-runner.sh "${Secrets.USER_NAME}"
             "${Secrets.USER_EMAIL}" "${Secrets.USER_ID}" "${Secrets.PAT}"
             "${Secrets.SKIP_FOR_CUSTOMER}"
+        - Run: |
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt-get update
+        sudo apt-get install -y docker-ce
+        sudo systemctl start docker
+        sudo systemctl enable docker
+        sudo usermod -aG docker $USER
+        - Run: docker --version
       Container:
         Registry: CODECATALYST
         Image: CodeCatalystLinux_x86_64:2024_03
     Environment:
       Name: prod_environment
-  build:
+  sync:
     DependsOn:
       - init
+    Identifier: aws/build@v1
+    Inputs:
+      Sources:
+        - WorkflowSource
+      Variables:
+        - Name: region
+        - Name: accountID
+    Configuration:
+      Steps:
+        - Name: Set up environment variables
+          Run: |
+            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            REGION=us-east-1  # or use a variable if you want to make this configurable
+            BUCKET_NAME="mda-data-${ACCOUNT_ID}"
+            echo "Using bucket: $BUCKET_NAME in region: $REGION"
+        - Run: |
+          chmod +x ../scripts/sync.sh
+          ./scripts/sync.sh $BUCKET_NAME/artefacts/ $REGION
+        - Name: Verify sync
+          Run: aws s3 ls s3://$BUCKET_NAME/artefacts/ --recursive --summarize
+  build:
+    DependsOn:
+      - sync
     Identifier: aws/build@v1
     Inputs:
       Sources:
