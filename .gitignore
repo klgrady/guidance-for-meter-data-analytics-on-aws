@@ -1,7 +1,6 @@
 meter-data/data/
 taskcat_outputs
 .taskcat
-.DS_STORE
 *.iml
 .idea
 venv
@@ -17,3 +16,4 @@ assets/lambda/*
 scripts/start-e2e-test.sh
 scripts/.docker
 /.taskcat-*
+.DS_Store
