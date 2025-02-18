@@ -20,19 +20,20 @@ Actions:
     Configuration:
       Steps:
         - Run: chmod u+x ./.codecatalyst/*.sh
-        - Run: ./.codecatalyst/init-runner.sh "${Secrets.USER_NAME}"
+        - Run: |
+            ./.codecatalyst/init-runner.sh "${Secrets.USER_NAME}"
             "${Secrets.USER_EMAIL}" "${Secrets.USER_ID}" "${Secrets.PAT}"
             "${Secrets.SKIP_FOR_CUSTOMER}"
         - Run: |
-        sudo apt-get update
-        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        sudo apt-get update
-        sudo apt-get install -y docker-ce
-        sudo systemctl start docker
-        sudo systemctl enable docker
-        sudo usermod -aG docker $USER
+            sudo apt-get update
+            sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+            sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            sudo apt-get update
+            sudo apt-get install -y docker-ce
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker $USER
         - Run: docker --version
       Container:
         Registry: CODECATALYST
@@ -48,20 +49,20 @@ Actions:
         - WorkflowSource
       Variables:
         - Name: region
+          Value: "us-east-1"
         - Name: accountID
+          Value: ${ACCOUNT_ID}
     Configuration:
       Steps:
-        - Name: Set up environment variables
-          Run: |
-            ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            REGION=us-east-1  # or use a variable if you want to make this configurable
-            BUCKET_NAME="mda-data-${ACCOUNT_ID}"
+        - Run: |
+            export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+            export REGION=us-east-1  # or use a variable if you want to make this configurable
+            export BUCKET_NAME="mda-data-${ACCOUNT_ID}"
             echo "Using bucket: $BUCKET_NAME in region: $REGION"
         - Run: |
-          chmod +x ../scripts/sync.sh
-          ./scripts/sync.sh $BUCKET_NAME/artefacts/ $REGION
-        - Name: Verify sync
-          Run: aws s3 ls s3://$BUCKET_NAME/artefacts/ --recursive --summarize
+            chmod +x ../scripts/sync.sh
+            ./scripts/sync.sh $BUCKET_NAME/artefacts/ $REGION
+        - Run: aws s3 ls s3://$BUCKET_NAME/artefacts/ --recursive --summarize
   build:
     DependsOn:
       - sync
@@ -71,10 +72,11 @@ Actions:
         - WorkflowSource
       Variables:
         - Name: region
+          Value: "us-east-1"
         - Name: bucketPrefix
+          Value: "mda-data-${ACCOUNT_ID}"
         - Name: guidanceVersion
-        - Name: DomainName
-        - Name: UserProfileName
+          Value: 'v2.0.0'
     Outputs:
       AutoDiscoverReports:
         Enabled: false
@@ -102,10 +104,9 @@ Actions:
     Identifier: aws/cfn-deploy@v1
     Configuration:
       parameter-overrides: file:///sources/WorkflowSource/.codecatalyst/parameter.json
-      #parameter-overrides: DomainName=MySagemakerDomain,UserProfileName=SageMakerUser
       capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
       template: https://{{bucketPrefix}}-{{region}}.s3.{{region}}.amazonaws.com/guidance-for-meter-data-analytics-on-aws/{{guidanceVersion}}/work-load.template.yaml
-      region: {{ region }}
+      region: $region
       name: guidance-for-meter-data-analytics-on-aws
     Environment:
       Name: prod_environment
