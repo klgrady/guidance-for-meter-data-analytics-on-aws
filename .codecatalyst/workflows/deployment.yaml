@@ -104,7 +104,7 @@ Actions:
       parameter-overrides: file:///sources/WorkflowSource/.codecatalyst/parameter.json
       #parameter-overrides: DomainName=MySagemakerDomain,UserProfileName=SageMakerUser
       capabilities: CAPABILITY_IAM,CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
-      template: https://{{bucketPrefix}}-{{region}}.s3.{{region}}.amazonaws.com/guidance-for-meter-data-analytics-on-aws/{{guidanceVersion}}/idp-deploy.yaml
+      template: https://{{bucketPrefix}}-{{region}}.s3.{{region}}.amazonaws.com/guidance-for-meter-data-analytics-on-aws/{{guidanceVersion}}/work-load.template.yaml
       region: {{ region }}
       name: guidance-for-meter-data-analytics-on-aws
     Environment:
